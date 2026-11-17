@@ -5,13 +5,12 @@
 # faz clone do projeto do GitLab, corre torneio/diario.sh (torneio + testes do play.py)
 # e faz push do campeão e do histórico de volta para o main do GitLab.
 #
-# Como o repositório é público, os logs e os artifacts podem ser vistos por qualquer pessoa:
-# - o log só mostra o estado (correu bem / falhou e porquê), sem classificação nem código;
-# - o log completo e os CSVs dos jogos vão num artifact cifrado com ARTIFACT_PASS.
+# Como o repositório é público, os logs podem ser vistos por qualquer pessoa: o log só mostra
+# o estado (correu bem / falhou e porquê), sem classificação, nomes nem código. Não se guardam
+# artifacts no GitHub: o relatório completo de cada torneio fica no GitLab, em torneio/resultados/.
 #
 # No repositório do GitHub (Settings → Secrets and variables → Actions):
 #   Secrets:   TORNEIO_TOKEN (token do GitLab com write_repository e papel Maintainer)
-#              ARTIFACT_PASS (palavra-passe para cifrar os resultados)
 #   Variables: GITLAB_HOST (gitlab.up.pt) e GITLAB_PROJECT (caminho do projeto no GitLab)
 
 name: Torneio diário
@@ -62,7 +61,7 @@ jobs:
           CI_SERVER_HOST: ${{ env.GITLAB_HOST }}
           CI_PROJECT_PATH: ${{ env.GITLAB_PROJECT }}
         run: |
-          # O output completo (classificação, nomes, tracebacks) fica só no artifact cifrado.
+          # O output completo (classificação, nomes, tracebacks) não vai para o log público.
           status=0
           bash torneio/diario.sh > "${RUNNER_TEMP}/torneio.log" 2>&1 || status=$?
           echo "Núcleos: $(nproc) · jogos: ${TORNEIO_JOGOS}"
@@ -70,27 +69,7 @@ jobs:
           grep -E "^Push feito|^Nada mudou|^O main mudou|^Não consegui|vencedor rejeitado|Access denied|Authentication failed|not allowed|403|^fatal:" \
             "${RUNNER_TEMP}/torneio.log" | sed -E 's/: (Torneio diário [0-9-]+): .*/: \1/' || true
           if [ "${status}" -ne 0 ]; then
-            echo "O torneio falhou (código ${status}). O log completo está no artifact cifrado."
+            echo "O torneio falhou (código ${status}). Corre no PC para ver o detalhe (ver torneio/DIARIO.md)."
           fi
           exit "${status}"
 
-      - name: Cifrar os resultados
-        if: always()
-        env:
-          ARTIFACT_PASS: ${{ secrets.ARTIFACT_PASS }}
-        run: |
-          : "${ARTIFACT_PASS:?falta o segredo ARTIFACT_PASS}"
-          mkdir -p tp2/arena/results
-          cp "${RUNNER_TEMP}/torneio.log" tp2/arena/results/ 2>/dev/null || true
-          tar czf - -C tp2 arena/results \
-            | gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
-                  --passphrase "${ARTIFACT_PASS}" -o resultados.tar.gz.gpg
-
-      - name: Guardar os resultados cifrados (30 dias)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: resultados-torneio
-          path: resultados.tar.gz.gpg
-          if-no-files-found: ignore
-          retention-days: 30
