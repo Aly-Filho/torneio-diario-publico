@@ -18,7 +18,7 @@ name: Torneio diário
 
 on:
   schedule:
-    - cron: "0 2 * * *"   # 02:00 UTC (02:00 em Lisboa no inverno, 03:00 no verão)
+    - cron: "0 22 * * *"  # 22:00 UTC (22:00 em Lisboa no inverno, 23:00 no verão)
   workflow_dispatch:       # botão "Run workflow" para correr à mão
     inputs:
       jogos:
