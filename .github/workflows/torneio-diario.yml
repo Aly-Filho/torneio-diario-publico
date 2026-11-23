@@ -24,7 +24,7 @@ on:
       jogos:
         description: "Número de jogos"
         required: false
-        default: "12"
+        default: "40"
 
 # O workflow não escreve nada no GitHub: o GITHUB_TOKEN fica sem permissões.
 permissions: {}
