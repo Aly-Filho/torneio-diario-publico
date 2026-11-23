@@ -58,7 +58,7 @@ jobs:
         working-directory: tp2
         env:
           TORNEIO_TOKEN: ${{ secrets.TORNEIO_TOKEN }}
-          TORNEIO_JOGOS: ${{ inputs.jogos || '12' }}
+          TORNEIO_JOGOS: ${{ inputs.jogos || '40' }}
           CI_SERVER_HOST: ${{ env.GITLAB_HOST }}
           CI_PROJECT_PATH: ${{ env.GITLAB_PROJECT }}
         run: |
