@@ -24,7 +24,7 @@ on:
       jogos:
         description: "Número de jogos"
         required: false
-        default: "40"
+        default: "24"
 
 # O workflow não escreve nada no GitHub: o GITHUB_TOKEN fica sem permissões.
 permissions: {}
@@ -58,7 +58,7 @@ jobs:
         working-directory: tp2
         env:
           TORNEIO_TOKEN: ${{ secrets.TORNEIO_TOKEN }}
-          TORNEIO_JOGOS: ${{ inputs.jogos || '40' }}
+          TORNEIO_JOGOS: ${{ inputs.jogos || '24' }}
           CI_SERVER_HOST: ${{ env.GITLAB_HOST }}
           CI_PROJECT_PATH: ${{ env.GITLAB_PROJECT }}
         run: |
